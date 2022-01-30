@@ -1,4 +1,5 @@
 use crate::prelude::*;
+
 use num_traits::pow::Pow;
 
 // Tolerance for inaccuracies when calculating exp
@@ -314,15 +315,7 @@ impl MathematicalOps for Decimal {
         }
 
         // We do some approximations since we've got a decimal exponent.
-        // For positive bases: a^b = exp(b*ln(a))
-        let negative = self.is_sign_negative();
-        let e = match self.abs().ln().checked_mul(exp) {
-            Some(e) => e,
-            None => return None,
-        };
-        let mut result = e.checked_exp()?;
-        result.set_sign_negative(negative);
-        Some(result)
+        calculate_powd(self, &exp)
     }
 
     fn sqrt(&self) -> Option<Decimal> {
@@ -710,6 +703,41 @@ impl MathematicalOps for Decimal {
         }
         Some(result)
     }
+}
+
+// I want to deprecate legacy ops
+#[cfg(feature = "legacy-ops")]
+fn calculate_powd(value: &Decimal, exp: &Decimal) -> Option<Decimal> {
+    // For positive bases: a^b = exp(b*ln(a))
+    let negative = value.is_sign_negative();
+    let e = match value.abs().ln().checked_mul(*exp) {
+        Some(e) => e,
+        None => return None,
+    };
+    let mut result = e.checked_exp()?;
+    result.set_sign_negative(negative);
+    Some(result)
+}
+
+#[cfg(not(feature = "legacy-ops"))]
+fn calculate_powd(value: &Decimal, exp: &Decimal) -> Option<Decimal> {
+    use crate::sized::VariableSizedDecimal;
+
+    // For positive bases: a^b = exp(b*ln(a))
+    // First convert to a variable sized decimal
+    let negative = value.is_sign_negative();
+    let ln = value.abs().ln();
+    let ln = VariableSizedDecimal::<6>::from(&ln);
+    let exp = VariableSizedDecimal::<6>::from(exp);
+    let result = crate::ops::mul_impl(&ln, &exp);
+    let e = match result {
+        crate::decimal::CalculationResult::Ok(e) => e,
+        _ => return None,
+    };
+    let e: Decimal = e.into();
+    let mut result = e.checked_exp()?;
+    result.set_sign_negative(negative);
+    Some(result)
 }
 
 impl Pow<Decimal> for Decimal {

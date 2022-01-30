@@ -9,7 +9,7 @@ use crate::{
 use core::cmp::Ordering;
 use num_traits::Zero;
 
-pub(crate) fn add_impl(d1: &Decimal, d2: &Decimal) -> CalculationResult {
+pub(crate) fn add_impl(d1: &Decimal, d2: &Decimal) -> CalculationResult<Decimal> {
     // Convert to the same scale
     let mut my = d1.mantissa_array3();
     let mut my_scale = d1.scale();
@@ -80,11 +80,11 @@ pub(crate) fn add_impl(d1: &Decimal, d2: &Decimal) -> CalculationResult {
     CalculationResult::Ok(Decimal::from_parts(my[0], my[1], my[2], negative, final_scale))
 }
 
-pub(crate) fn sub_impl(d1: &Decimal, d2: &Decimal) -> CalculationResult {
+pub(crate) fn sub_impl(d1: &Decimal, d2: &Decimal) -> CalculationResult<Decimal> {
     add_impl(d1, &(-*d2))
 }
 
-pub(crate) fn div_impl(d1: &Decimal, d2: &Decimal) -> CalculationResult {
+pub(crate) fn div_impl(d1: &Decimal, d2: &Decimal) -> CalculationResult<Decimal> {
     if d2.is_zero() {
         return CalculationResult::DivByZero;
     }
@@ -205,7 +205,7 @@ pub(crate) fn div_impl(d1: &Decimal, d2: &Decimal) -> CalculationResult {
     ))
 }
 
-pub(crate) fn mul_impl(d1: &Decimal, d2: &Decimal) -> CalculationResult {
+pub(crate) fn mul_impl(d1: &Decimal, d2: &Decimal) -> CalculationResult<Decimal> {
     // Early exit if either is zero
     if d1.is_zero() || d2.is_zero() {
         return CalculationResult::Ok(Decimal::zero());
@@ -378,7 +378,7 @@ pub(crate) fn mul_impl(d1: &Decimal, d2: &Decimal) -> CalculationResult {
     ))
 }
 
-pub(crate) fn rem_impl(d1: &Decimal, d2: &Decimal) -> CalculationResult {
+pub(crate) fn rem_impl(d1: &Decimal, d2: &Decimal) -> CalculationResult<Decimal> {
     if d2.is_zero() {
         return CalculationResult::DivByZero;
     }

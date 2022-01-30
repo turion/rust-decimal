@@ -1470,10 +1470,69 @@ impl Default for Decimal {
     }
 }
 
-pub(crate) enum CalculationResult {
-    Ok(Decimal),
+pub(crate) enum CalculationResult<T> {
+    Ok(T),
     Overflow,
     DivByZero,
+}
+
+pub(crate) trait DecimalLike {
+    const ZERO: Self;
+
+    fn is_zero(&self) -> bool;
+    fn is_sign_negative(&self) -> bool;
+    fn is_sign_positive(&self) -> bool;
+    fn scale(&self) -> u32;
+
+    // TODO: Refactor these
+    fn from_parts(lo: u32, mid: u32, hi: u32, negative: bool, scale: u32) -> Self;
+    fn lo(&self) -> u32;
+    fn mid(&self) -> u32;
+    fn hi(&self) -> u32;
+}
+
+impl DecimalLike for Decimal {
+    const ZERO: Self = Decimal::ZERO;
+
+    #[inline]
+    fn is_zero(&self) -> bool {
+        self.is_zero()
+    }
+
+    #[inline]
+    fn is_sign_negative(&self) -> bool {
+        self.is_sign_negative()
+    }
+
+    #[inline]
+    fn is_sign_positive(&self) -> bool {
+        self.is_sign_positive()
+    }
+
+    #[inline]
+    fn scale(&self) -> u32 {
+        self.scale()
+    }
+
+    #[inline]
+    fn from_parts(lo: u32, mid: u32, hi: u32, negative: bool, scale: u32) -> Self {
+        Decimal::from_parts(lo, mid, hi, negative, scale)
+    }
+
+    #[inline]
+    fn lo(&self) -> u32 {
+        self.lo
+    }
+
+    #[inline]
+    fn mid(&self) -> u32 {
+        self.mid
+    }
+
+    #[inline]
+    fn hi(&self) -> u32 {
+        self.hi
+    }
 }
 
 #[inline]

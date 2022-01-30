@@ -1,12 +1,12 @@
 use crate::constants::{BIG_POWERS_10, MAX_I64_SCALE, MAX_PRECISION_U32, U32_MAX};
-use crate::decimal::{CalculationResult, Decimal};
+use crate::decimal::{CalculationResult, DecimalLike};
 use crate::ops::common::Buf24;
 
-pub(crate) fn mul_impl(d1: &Decimal, d2: &Decimal) -> CalculationResult {
+pub(crate) fn mul_impl<T: DecimalLike>(d1: &T, d2: &T) -> CalculationResult<T> {
     if d1.is_zero() || d2.is_zero() {
         // We should think about this - does zero need to maintain precision? This treats it like
         // an absolute which I think is ok, especially since we have is_zero() functions etc.
-        return CalculationResult::Ok(Decimal::ZERO);
+        return CalculationResult::Ok(T::ZERO);
     }
 
     let mut scale = d1.scale() + d2.scale();
@@ -23,7 +23,7 @@ pub(crate) fn mul_impl(d1: &Decimal, d2: &Decimal) -> CalculationResult {
                 // rounding) until we have something that fits.
                 // If we're too big then we effectively round to zero.
                 if scale > MAX_PRECISION_U32 + MAX_I64_SCALE {
-                    return CalculationResult::Ok(Decimal::ZERO);
+                    return CalculationResult::Ok(T::ZERO);
                 }
 
                 scale -= MAX_PRECISION_U32 + 1;
@@ -43,13 +43,7 @@ pub(crate) fn mul_impl(d1: &Decimal, d2: &Decimal) -> CalculationResult {
             }
 
             // Early exit
-            return CalculationResult::Ok(Decimal::from_parts(
-                low64 as u32,
-                (low64 >> 32) as u32,
-                0,
-                negative,
-                scale,
-            ));
+            return CalculationResult::Ok(T::from_parts(low64 as u32, (low64 >> 32) as u32, 0, negative, scale));
         }
 
         // We know that the left hand side is just 32 bits but the right hand side is either
@@ -137,7 +131,7 @@ pub(crate) fn mul_impl(d1: &Decimal, d2: &Decimal) -> CalculationResult {
         }
     }
 
-    CalculationResult::Ok(Decimal::from_parts(
+    CalculationResult::Ok(T::from_parts(
         product.data[0],
         product.data[1],
         product.data[2],
@@ -147,7 +141,7 @@ pub(crate) fn mul_impl(d1: &Decimal, d2: &Decimal) -> CalculationResult {
 }
 
 #[inline(always)]
-fn mul_by_32bit_lhs(d1: u64, d2: &Decimal, product: &mut Buf24) {
+fn mul_by_32bit_lhs<T: DecimalLike>(d1: u64, d2: &T, product: &mut Buf24) {
     let mut tmp = d1 * d2.lo() as u64;
     product.data[0] = tmp as u32;
     tmp = (d1 * d2.mid() as u64).wrapping_add(tmp >> 32);

@@ -121,6 +121,8 @@ Enable `diesel` MySQL support.
 
 ### `legacy-ops`
 
+**Deprecated**: This feature will be removed in a future version.
+
 As of `1.10` the algorithms used to perform basic operations have changed which has benefits of significant speed improvements.
 To maintain backwards compatibility this can be opted out of by enabling the `legacy-ops` feature.
 

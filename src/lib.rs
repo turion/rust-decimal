@@ -195,6 +195,14 @@ mod rocket;
 #[cfg(feature = "serde")]
 pub mod serde;
 
+// Experimental variable support. Used for maths only at the moment.
+#[cfg(all(feature = "maths", not(feature = "legacy-ops")))]
+pub(crate) mod sized;
+
+// Coming soon...
+// #[cfg(feature = "legacy-ops")]
+// compile_error!("legacy-ops feature no longer supported.");
+
 pub use decimal::{Decimal, RoundingStrategy};
 pub use error::Error;
 #[cfg(feature = "maths")]

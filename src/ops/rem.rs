@@ -2,7 +2,7 @@ use crate::constants::{MAX_I32_SCALE, MAX_PRECISION_I32, POWERS_10};
 use crate::decimal::{CalculationResult, Decimal};
 use crate::ops::common::{Buf12, Buf16, Buf24, Dec64};
 
-pub(crate) fn rem_impl(d1: &Decimal, d2: &Decimal) -> CalculationResult {
+pub(crate) fn rem_impl(d1: &Decimal, d2: &Decimal) -> CalculationResult<Decimal> {
     if d2.is_zero() {
         return CalculationResult::DivByZero;
     }
@@ -127,7 +127,7 @@ pub(crate) fn rem_impl(d1: &Decimal, d2: &Decimal) -> CalculationResult {
     CalculationResult::Ok(d1.to_decimal())
 }
 
-fn rem_full(d1: &Dec64, d2: &Buf12, scale: i32) -> CalculationResult {
+fn rem_full(d1: &Dec64, d2: &Buf12, scale: i32) -> CalculationResult<Decimal> {
     let mut scale = scale;
 
     // First normalize the divisor
